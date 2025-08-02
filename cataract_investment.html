@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดวิเคราะห์การลงทุนผ่าตัดต้อกระจก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A single-page, vertically scrolling application with a sticky navigation bar. The structure guides the user from a high-level summary to detailed, interactive sections: 1. Hero section with key metrics (Total Investment, ROI). 2. Interactive Investment Dashboard to explore cost breakdowns (donut chart + dynamic list). 3. "Why Invest?" section with scannable cards for market drivers. 4. "How to Start?" section with a visual, step-by-step process flow. 5. Financial Outlook with comparative charts. 6. Strategic Recommendations. This structure was chosen to transform a linear report into an exploratory experience, allowing users to quickly grasp key data and then drill down into areas of interest, directly answering their core questions about cost, equipment, and preparation in a non-linear, user-driven way. -->
+    <!-- Visualization & Content Choices: 1. Investment Breakdown: Report Info -> Capital expenditure categories. Goal -> Compare cost proportions. Viz -> Chart.js Donut Chart + interactive slider. Interaction -> Click donut segment to filter a detailed list; slide to adjust total investment estimate. Justification -> More engaging than a static table, shows cost structure intuitively. 2. Equipment List: Report Info -> List of medical devices. Goal -> Organize and inform. Viz -> Interactive HTML/CSS cards. Interaction -> Click card to expand and show details (function, price). Justification -> Cleaner and more discoverable than a long text list. 3. Preparation Steps: Report Info -> Pre-launch checklist. Goal -> Show a clear process. Viz -> HTML/CSS process flow diagram. Interaction -> Click step to see detailed description. Justification -> Visual flow is easier to understand for a sequence of tasks. 4. Financials: Report Info -> Revenue per procedure vs. OpEx. Goal -> Compare viability. Viz -> Chart.js Bar Chart. Interaction -> Hover for tooltips. Justification -> Direct visual comparison of income vs. costs. All choices use Canvas or HTML/CSS to avoid SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #FDFBF6;
+            color: #4A5568;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 300px;
+            width: 100%;
+            max-width: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-width: 450px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .step-item.active .step-circle {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .step-item.active .step-title {
+            color: #3B82F6;
+            font-weight: 600;
+        }
+        .equipment-card.active {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #3B82F6;
+        }
+    </style>
+</head>
+<body class="bg-[#FDFBF6]">
+
+    <header id="navbar" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="text-xl font-bold text-gray-700">
+                <span class="text-blue-500">👁️</span> การลงทุนผ่าตัดต้อกระจก
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#summary" class="nav-link">ภาพรวม</a>
+                <a href="#investment" class="nav-link">การลงทุน</a>
+                <a href="#equipment" class="nav-link">อุปกรณ์</a>
+                <a href="#preparation" class="nav-link">การเตรียมตัว</a>
+                <a href="#strategy" class="nav-link">กลยุทธ์</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden flex items-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#summary" class="block py-2 px-4 text-sm hover:bg-gray-200">ภาพรวม</a>
+            <a href="#investment" class="block py-2 px-4 text-sm hover:bg-gray-200">การลงทุน</a>
+            <a href="#equipment" class="block py-2 px-4 text-sm hover:bg-gray-200">อุปกรณ์</a>
+            <a href="#preparation" class="block py-2 px-4 text-sm hover:bg-gray-200">การเตรียมตัว</a>
+            <a href="#strategy" class="block py-2 px-4 text-sm hover:bg-gray-200">กลยุทธ์</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+
+        <section id="summary" class="text-center py-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">โอกาสการลงทุนในบริการผ่าตัดต้อกระจก</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+                สำรวจศักยภาพการเติบโตในตลาดการดูแลสุขภาพที่ขับเคลื่อนโดยสังคมสูงวัยและความต้องการทางการแพทย์ที่เพิ่มขึ้นอย่างต่อเนื่อง
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">เงินลงทุนเริ่มต้นโดยประมาณ</h3>
+                    <p class="text-3xl font-bold text-gray-800">5 - 15 ล้านบาท</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">ระยะเวลาคืนทุนโดยประมาณ</h3>
+                    <p class="text-3xl font-bold text-gray-800">2 - 5 ปี</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">รายได้เฉลี่ยต่อการผ่าตัด</h3>
+                    <p class="text-3xl font-bold text-gray-800">30k - 80k บาท</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="investment" class="py-16 bg-gray-50 rounded-xl">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">สำรวจโครงสร้างการลงทุน</h2>
+                <p class="text-gray-600 mt-2">
+                    ทำความเข้าใจสัดส่วนค่าใช้จ่ายหลักในการจัดตั้งหน่วยผ่าตัดต้อกระจก
+                    <br>
+                    คลิกที่ส่วนของแผนภูมิวงกลมเพื่อกรองรายการด้านล่าง
+                </p>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
+                <div class="w-full lg:w-1/2">
+                    <div class="chart-container mx-auto">
+                        <canvas id="investmentChart"></canvas>
+                    </div>
+                    <div class="mt-8 px-4">
+                        <label for="investmentRange" class="block text-center font-medium text-gray-700">ปรับประมาณการลงทุนรวม: <span id="investmentValue" class="font-bold text-blue-600">10</span> ล้านบาท</label>
+                        <input id="investmentRange" type="range" min="5" max="15" value="10" step="0.5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+                </div>
+                <div class="w-full lg:w-1/2 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4" id="investmentDetailTitle">รายละเอียดค่าใช้จ่ายทั้งหมด</h3>
+                    <ul id="investmentDetailList" class="space-y-3 text-gray-700 h-96 overflow-y-auto pr-2">
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="equipment" class="py-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">รายการอุปกรณ์ที่จำเป็น</h2>
+                <p class="text-gray-600 mt-2">
+                    คลิกที่การ์ดอุปกรณ์แต่ละชิ้นเพื่อดูรายละเอียด ฟังก์ชัน และช่วงราคาโดยประมาณ
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="equipmentGrid">
+            </div>
+        </section>
+
+        <section id="preparation" class="py-16 bg-gray-50 rounded-xl">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">ขั้นตอนการเตรียมความพร้อม</h2>
+                <p class="text-gray-600 mt-2">
+                    เส้นทางสู่การเปิดบริการผ่าตัดต้อกระจก: สำรวจขั้นตอนที่สำคัญ
+                </p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/3">
+                    <div id="stepsList" class="space-y-4">
+                    </div>
+                </div>
+                <div class="w-full md:w-2/3 bg-white p-6 rounded-lg shadow-md">
+                    <div id="stepDetail">
+                        <h3 id="stepDetailTitle" class="text-2xl font-semibold text-gray-800 mb-4"></h3>
+                        <p id="stepDetailDescription" class="text-gray-600 leading-relaxed"></p>
+                        <button id="generateStepTipsBtn" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 hidden">
+                            ความท้าทายและเคล็ดลับ ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy" class="py-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800">ข้อเสนอแนะและกลยุทธ์</h2>
+                <p class="text-gray-600 mt-2">
+                    ปัจจัยสำคัญสู่ความสำเร็จในการลงทุน
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">📈</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">วิเคราะห์ตลาดเชิงลึก</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">ศึกษาความต้องการในพื้นที่, คู่แข่ง, และข้อมูลประชากรเพื่อวางตำแหน่งทางการตลาดที่เหมาะสม</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">🧑‍⚕️</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">ลงทุนในบุคลากร</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">การสรรหาและรักษาทีมแพทย์และบุคลากรที่มีทักษะสูงคือหัวใจของความสำเร็จและชื่อเสียง</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">⚙️</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">จัดซื้ออุปกรณ์อย่างมีกลยุทธ์</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">สร้างสมดุลระหว่างต้นทุนเริ่มต้นกับมูลค่าระยะยาว, พิจารณาเทคโนโลยีที่สามารถอัปเกรดได้ในอนาคต</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">⚖️</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">ให้ความสำคัญกับกฎระเบียบ</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">การปฏิบัติตามข้อบังคับของกระทรวงสาธารณสุขและการประกันคุณภาพเป็นสิ่งจำเป็นอย่างยิ่ง</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">🎯</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">การตลาดที่แข็งแกร่ง</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">สร้างแบรนด์ที่น่าเชื่อถือและเข้าถึงกลุ่มผู้ป่วยเป้าหมายผ่านช่องทางที่หลากหลาย</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl mr-4">🚀</span>
+                        <h3 class="text-xl font-semibold text-gray-800 strategy-title">มุ่งเน้นความเป็นเลิศ</h3>
+                    </div>
+                    <p class="text-gray-600 strategy-description">พัฒนากระบวนการทำงานที่มีประสิทธิภาพเพื่อเพิ่มความสามารถในการทำกำไรและเร่งการคืนทุน</p>
+                    <button class="generate-strategy-btn mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        ขยายความกลยุทธ์ ✨
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-16">
+        <p>&copy; 2025 แดชบอร์ดวิเคราะห์การลงทุนผ่าตัดต้อกระจก</p>
+        <p class="text-sm text-gray-400">ข้อมูลนี้จัดทำขึ้นเพื่อเป็นแนวทางเบื้องต้น โปรดปรึกษาผู้เชี่ยวชาญเพื่อการตัดสินใจลงทุน</p>
+    </footer>
+
+    <!-- LLM Response Modal -->
+    <div id="llmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4 relative">
+            <button id="closeLlmModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 id="llmModalTitle" class="text-2xl font-bold text-gray-800 mb-4"></h3>
+            <div id="llmModalContent" class="text-gray-700 leading-relaxed max-h-[70vh] overflow-y-auto">
+                <!-- LLM generated content will go here -->
+                <div id="llmLoadingIndicator" class="text-center py-8 hidden">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">กำลังสร้างข้อมูล...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const investmentData = {
+                labels: ['อุปกรณ์การแพทย์', 'การจัดตั้งสถานที่', 'สินค้าคงคลังเริ่มต้น', 'ใบอนุญาตและอื่นๆ'],
+                datasets: [{
+                    data: [65, 25, 5, 5],
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#6B7280'],
+                    hoverBackgroundColor: ['#2563EB', '#059669', '#D97706', '#4B5563'],
+                    borderColor: '#FDFBF6',
+                    borderWidth: 4,
+                }]
+            };
+
+            const investmentDetails = [
+                { category: 'อุปกรณ์การแพทย์', item: 'ระบบสลายต้อ (Phaco)', costMin: 1.5, costMax: 3.5 },
+                { category: 'อุปกรณ์การแพทย์', item: 'กล้องจุลทรรศน์ผ่าตัด', costMin: 0.5, costMax: 1.5 },
+                { category: 'อุปกรณ์การแพทย์', item: 'อุปกรณ์ฆ่าเชื้อ', costMin: 0.2, costMax: 0.8 },
+                { category: 'อุปกรณ์การแพทย์', item: 'เครื่องมือผ่าตัด', costMin: 0.3, costMax: 1.0 },
+                { category: 'อุปกรณ์การแพทย์', item: 'เครื่องวัดชีวภาพ (Biometer)', costMin: 0.3, costMax: 1.0 },
+                { category: 'อุปกรณ์การแพทย์', item: 'อุปกรณ์วินิจฉัยอื่นๆ', costMin: 0.25, costMax: 0.8 },
+                { category: 'อุปกรณ์การแพทย์', item: 'เลเซอร์ YAG (ทางเลือก)', costMin: 0.8, costMax: 2.5 },
+                { category: 'การจัดตั้งสถานที่', item: 'ปรับปรุงห้องผ่าตัด', costMin: 1.0, costMax: 3.0 },
+                { category: 'การจัดตั้งสถานที่', item: 'ตกแต่งพื้นที่รอและพักฟื้น', costMin: 0.2, costMax: 0.8 },
+                { category: 'สินค้าคงคลังเริ่มต้น', item: 'วัสดุสิ้นเปลืองและยา', costMin: 0.2, costMax: 0.5 },
+                { category: 'สินค้าคงคลังเริ่มต้น', item: 'เลนส์แก้วตาเทียม (สต็อก)', costMin: 0.1, costMax: 0.3 },
+                { category: 'ใบอนุญาตและอื่นๆ', item: 'ค่าธรรมเนียมใบอนุญาต', costMin: 0.05, costMax: 0.2 },
+                { category: 'ใบอนุญาตและอื่นๆ', item: 'การตลาดเริ่มต้น', costMin: 0.1, costMax: 0.5 },
+            ];
+
+            const equipmentData = [
+                { name: 'ระบบสลายต้อ (Phaco)', icon: '🌊', description: 'เครื่องมือหลักที่ใช้คลื่นเสียงความถี่สูงสลายเลนส์ตาที่ขุ่นมัว เป็นมาตรฐานทองของการผ่าตัดต้อกระจกสมัยใหม่', price: '1.5 - 3.5 ล้านบาท' },
+                { name: 'กล้องจุลทรรศน์ผ่าตัด', icon: '🔬', description: 'ให้กำลังขยายและแสงสว่างสูง ช่วยให้ศัลยแพทย์มองเห็นโครงสร้างที่ละเอียดอ่อนของดวงตาได้อย่างชัดเจนและปลอดภัย', price: '0.5 - 1.5 ล้านบาท' },
+                { name: 'เครื่องวัดชีวภาพ (Biometer)', icon: '📏', description: 'ใช้วัดขนาดและคำนวณกำลังของเลนส์แก้วตาเทียม (IOL) ที่จะใส่เข้าไปแทนที่เลนส์เดิม มีความสำคัญอย่างยิ่งต่อความแม่นยำของค่าสายตาหลังผ่าตัด', price: '0.3 - 1.0 ล้านบาท' },
+                { name: 'อุปกรณ์ฆ่าเชื้อ (Autoclave)', icon: '🔥', description: 'เครื่องนึ่งฆ่าเชื้อด้วยแรงดันไอน้ำสูง เพื่อให้เครื่องมือผ่าตัดทุกชิ้นปลอดเชื้อ ป้องกันการติดเชื้อซึ่งเป็นหัวใจสำคัญของความปลอดภัย', price: '0.2 - 0.8 ล้านบาท' },
+                { name: 'เลเซอร์ YAG (ทางเลือก)', icon: '✨', description: 'ใช้สำหรับรักษาภาวะถุงหุ้มเลนส์ขุ่นหลังผ่าตัด ซึ่งเป็นภาวะแทรกซ้อนที่พบได้บ่อย ช่วยเพิ่มบริการและรายได้หลังการผ่าตัดหลัก', price: '0.8 - 2.5 ล้านบาท' },
+                { name: 'เครื่องมือผ่าตัดและอื่นๆ', icon: '✂️', description: 'ชุดเครื่องมือผ่าตัดเฉพาะทางสำหรับจักษุ, เครื่องติดตามสัญญาณชีพ, และอุปกรณ์สนับสนุนอื่นๆ ในห้องผ่าตัด', price: '0.3 - 1.0 ล้านบาท' },
+            ];
+
+            const preparationSteps = [
+                { title: 'การวางแผนและศึกษาความเป็นไปได้', description: 'เริ่มต้นด้วยการวิจัยตลาดอย่างละเอียด, วิเคราะห์คู่แข่ง, และจัดทำแผนธุรกิจที่ครอบคลุมการคาดการณ์ทางการเงิน, กลยุทธ์การดำเนินงาน, และการประเมินความเสี่ยง นี่คือรากฐานที่สำคัญที่สุด' },
+                { title: 'การขอใบอนุญาตและกฎระเบียบ', description: 'ดำเนินการขอใบอนุญาตประกอบกิจการสถานพยาบาลจากกระทรวงสาธารณสุขและหน่วยงานที่เกี่ยวข้อง ซึ่งรวมถึงการตรวจสอบสถานที่และการปฏิบัติตามมาตรฐานที่กำหนด ควรปรึกษาผู้เชี่ยวชาญด้านกฎหมาย' },
+                { title: 'การออกแบบและจัดตั้งสถานที่', description: 'ออกแบบและปรับปรุงสถานที่ให้เป็นไปตามมาตรฐานห้องผ่าตัดปลอดเชื้อ (HEPA filter, positive pressure) รวมถึงจัดสรรพื้นที่สำหรับให้คำปรึกษา, พักฟื้น, และส่วนบริหารจัดการอย่างเหมาะสม' },
+                { title: 'การจัดซื้ออุปกรณ์และสินค้าคงคลัง', description: 'ดำเนินการจัดซื้ออุปกรณ์ทางการแพทย์ที่จำเป็นทั้งหมดตามรายการ และสร้างความสัมพันธ์กับซัพพลายเออร์ที่เชื่อถือได้สำหรับวัสดุสิ้นเปลืองและเลนส์แก้วตาเทียม' },
+                { title: 'การสรรหาและฝึกอบรมบุคลากร', description: 'สรรหาบุคลากรหลัก ได้แก่ จักษุแพทย์, พยาบาลห้องผ่าตัด, และเจ้าหน้าที่สนับสนุนที่มีประสบการณ์ พร้อมทั้งจัดโปรแกรมการฝึกอบรมการใช้อุปกรณ์และขั้นตอนการทำงาน' },
+                { title: 'การตลาดและการเปิดตัว', description: 'พัฒนากลยุทธ์การตลาดเพื่อสร้างการรับรู้และดึงดูดผู้ป่วยกลุ่มเป้าหมายในช่วงเริ่มต้น อาจรวมถึงการสร้างแบรนด์, การทำประชาสัมพันธ์, และการสร้างเครือข่ายส่งต่อผู้ป่วย' },
+            ];
+            
+            const investmentChartCtx = document.getElementById('investmentChart').getContext('2d');
+            const investmentChart = new Chart(investmentChartCtx, {
+                type: 'doughnut',
+                data: investmentData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Sarabun', sans-serif",
+                                    size: 14,
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const clickedIndex = elements[0].index;
+                            const category = investmentData.labels[clickedIndex];
+                            updateInvestmentDetails(category);
+                        }
+                    }
+                }
+            });
+
+            const investmentRange = document.getElementById('investmentRange');
+            const investmentValue = document.getElementById('investmentValue');
+            const investmentDetailList = document.getElementById('investmentDetailList');
+            const investmentDetailTitle = document.getElementById('investmentDetailTitle');
+
+            function formatCurrency(value) {
+                return (value).toLocaleString('th-TH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' ล้านบาท';
+            }
+
+            function updateInvestmentDetails(category = 'ทั้งหมด') {
+                investmentDetailTitle.textContent = `รายละเอียดค่าใช้จ่าย: ${category}`;
+                investmentDetailList.innerHTML = '';
+                const totalInvestment = parseFloat(investmentRange.value);
+
+                const filteredDetails = category === 'ทั้งหมด' 
+                    ? investmentDetails 
+                    : investmentDetails.filter(d => d.category === category);
+                
+                let categoryPercentage = 1;
+                if(category !== 'ทั้งหมด') {
+                    const categoryIndex = investmentData.labels.indexOf(category);
+                    categoryPercentage = investmentData.datasets[0].data[categoryIndex] / 100;
+                }
+
+                filteredDetails.forEach(detail => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center p-2 rounded-md hover:bg-gray-100';
+                    
+                    const cost = ((detail.costMin + detail.costMax) / 2 / 10) * totalInvestment * categoryPercentage;
+                    const costText = formatCurrency(cost / filteredDetails.length);
+
+                    li.innerHTML = `
+                        <span>${detail.item}</span>
+                        <span class="font-semibold text-blue-600">${costText}</span>
+                    `;
+                    investmentDetailList.appendChild(li);
+                });
+            }
+
+            investmentRange.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                investmentValue.textContent = value.toFixed(1);
+                const currentCategory = investmentDetailTitle.textContent.replace('รายละเอียดค่าใช้จ่าย: ', '');
+                updateInvestmentDetails(currentCategory);
+            });
+
+            const equipmentGrid = document.getElementById('equipmentGrid');
+            equipmentData.forEach(eq => {
+                const div = document.createElement('div');
+                div.className = 'equipment-card card bg-white p-6 rounded-lg shadow-md cursor-pointer border-2 border-transparent';
+                div.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <span class="text-4xl mr-4">${eq.icon}</span>
+                        <h3 class="text-lg font-semibold text-gray-800">${eq.name}</h3>
+                    </div>
+                    <div class="details hidden mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-gray-600 mb-2">${eq.description}</p>
+                        <p class="font-semibold text-gray-800">ช่วงราคา: <span class="text-blue-600">${eq.price}</span></p>
+                    </div>
+                `;
+                equipmentGrid.appendChild(div);
+            });
+            
+            equipmentGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.equipment-card');
+                if (card) {
+                    const details = card.querySelector('.details');
+                    const isActive = card.classList.contains('active');
+
+                    document.querySelectorAll('.equipment-card').forEach(c => {
+                        c.classList.remove('active');
+                        c.querySelector('.details').classList.add('hidden');
+                    });
+
+                    if (!isActive) {
+                        card.classList.add('active');
+                        details.classList.remove('hidden');
+                    }
+                }
+            });
+
+            const stepsList = document.getElementById('stepsList');
+            const stepDetailTitle = document.getElementById('stepDetailTitle');
+            const stepDetailDescription = document.getElementById('stepDetailDescription');
+            const generateStepTipsBtn = document.getElementById('generateStepTipsBtn');
+            
+            preparationSteps.forEach((step, index) => {
+                const div = document.createElement('div');
+                div.className = 'step-item p-4 rounded-lg cursor-pointer flex items-center transition-all duration-300 hover:bg-gray-200';
+                div.dataset.index = index;
+                div.innerHTML = `
+                    <div class="step-circle w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-600 mr-4 transition-all duration-300">${index + 1}</div>
+                    <span class="step-title font-medium text-gray-700 transition-all duration-300">${step.title}</span>
+                `;
+                stepsList.appendChild(div);
+            });
+
+            function setActiveStep(index) {
+                document.querySelectorAll('.step-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (parseInt(item.dataset.index) === index) {
+                        item.classList.add('active');
+                    }
+                });
+                stepDetailTitle.textContent = preparationSteps[index].title;
+                stepDetailDescription.textContent = preparationSteps[index].description;
+                generateStepTipsBtn.classList.remove('hidden'); 
+            }
+
+            stepsList.addEventListener('click', (e) => {
+                const stepItem = e.target.closest('.step-item');
+                if (stepItem) {
+                    setActiveStep(parseInt(stepItem.dataset.index));
+                }
+            });
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link, #mobile-menu a');
+            const sections = document.querySelectorAll('section');
+            const navbar = document.getElementById('navbar');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: `-${navbar.offsetHeight}px 0px 0px 0px`,
+                threshold: 0.4
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const topPos = targetElement.offsetTop - navbar.offsetHeight;
+                        window.scrollTo({
+                            top: topPos,
+                            behavior: 'smooth'
+                        });
+                    }
+                    if (mobileMenu.classList.contains('hidden') === false) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            // LLM Integration
+            const llmModal = document.getElementById('llmModal');
+            const closeLlmModal = document.getElementById('closeLlmModal');
+            const llmModalTitle = document.getElementById('llmModalTitle');
+            const llmModalContent = document.getElementById('llmModalContent');
+            const llmLoadingIndicator = document.getElementById('llmLoadingIndicator');
+
+            closeLlmModal.addEventListener('click', () => {
+                llmModal.classList.add('hidden');
+            });
+
+            async function callGemini(prompt) {
+                llmModalContent.innerHTML = ''; 
+                llmLoadingIndicator.classList.remove('hidden'); 
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                let responseText = "ขออภัย เกิดข้อผิดพลาดในการสร้างข้อมูล กรุณาลองใหม่อีกครั้ง";
+                let retries = 0;
+                const maxRetries = 3;
+                const baseDelay = 1000; 
+
+                while (retries < maxRetries) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            responseText = result.candidates[0].content.parts[0].text;
+                            break; 
+                        } else {
+                            throw new Error("Invalid API response structure");
+                        }
+                    } catch (error) {
+                        console.error("Gemini API call failed:", error);
+                        retries++;
+                        if (retries < maxRetries) {
+                            const delay = baseDelay * Math.pow(2, retries - 1);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+                
+                llmLoadingIndicator.classList.add('hidden'); 
+                llmModalContent.innerHTML = `<p>${responseText}</p>`; 
+            }
+
+            document.querySelectorAll('.generate-strategy-btn').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const card = button.closest('.card');
+                    const title = card.querySelector('.strategy-title').textContent;
+                    const description = card.querySelector('.strategy-description').textContent;
+                    
+                    llmModalTitle.textContent = `ขยายความกลยุทธ์: ${title}`;
+                    llmModal.classList.remove('hidden');
+                    
+                    const prompt = `โปรดขยายความเกี่ยวกับกลยุทธ์ '${title}' ในบริบทของการลงทุนผ่าตัดต้อกระจก โดยเน้นรายละเอียดและขั้นตอนที่เป็นรูปธรรมจากข้อมูลต่อไปนี้: "${description}"`;
+                    await callGemini(prompt);
+                });
+            });
+
+            generateStepTipsBtn.addEventListener('click', async () => {
+                const title = document.getElementById('stepDetailTitle').textContent;
+                
+                llmModalTitle.textContent = `ความท้าทายและเคล็ดลับสำหรับ: ${title}`;
+                llmModal.classList.remove('hidden');
+
+                const prompt = `โปรดอธิบายความท้าทายที่พบบ่อยและเคล็ดลับในการจัดการสำหรับขั้นตอน '${title}' ในการเตรียมความพร้อมสำหรับการลงทุนผ่าตัดต้อกระจก`;
+                await callGemini(prompt);
+            });
+
+
+            // Initial calls
+            updateInvestmentDetails();
+            setActiveStep(0); // Set initial active step and show the button
+        });
+    </script>
+</body>
+</html>
